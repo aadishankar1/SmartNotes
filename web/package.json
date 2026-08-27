@@ -1,0 +1,9 @@
+{
+  "name": "@smartnotes/web",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -b && mkdir -p ../dist/web && cp index.html ../dist/web/index.html && cp src/styles.css ../dist/web/src/styles.css",
+    "typecheck": "tsc -b"
+  }
+}
