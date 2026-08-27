@@ -1,0 +1,26 @@
+{
+  "name": "smartnotes",
+  "version": "0.1.0",
+  "private": true,
+  "description": "SmartNotes: notebooks, notes and annotated PDFs that synchronise across devices",
+  "type": "module",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=20.11"
+  },
+  "scripts": {
+    "build": "tsc -b server",
+    "typecheck": "tsc -b server",
+    "clean": "rm -rf dist",
+    "test": "npm run build && node --test dist/shared/test/*.test.js dist/server/test/*.test.js",
+    "test:shared": "npm run build && node --test dist/shared/test/*.test.js",
+    "test:server": "npm run build && node --test dist/server/test/*.test.js",
+    "fixtures": "npm run build && node dist/shared/test/fixtures.gen.js",
+    "health": "npm run build && node dist/server/src/healthcheck.js",
+    "start": "npm run build && node dist/server/src/main.js"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.1",
+    "typescript": "^5.9.3"
+  }
+}

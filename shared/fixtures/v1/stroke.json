@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "ink_week3",
+  "notebookId": "nb_field",
+  "targetKind": "pdf",
+  "targetId": "pdf_syllabus",
+  "page": 2,
+  "color": "#1f2933",
+  "width": 3,
+  "points": [
+    7200,
+    32050,
+    400,
+    0,
+    7425,
+    32100,
+    620,
+    16,
+    7850,
+    32275,
+    710,
+    33,
+    8400,
+    32300,
+    500,
+    51
+  ],
+  "createdAt": 1767226100000
+}
