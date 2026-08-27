@@ -1,9 +1,11 @@
 import { after, before, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { DatabaseSync } from 'node:sqlite';
 
 import { SESSION_TTL_MS } from '../src/auth.js';
+import { DATABASE_FILE } from '../src/store/sqlite.js';
 import { call, createNotebook, errorCode, harness, body, signup, type Harness } from './helpers.js';
 
 const PASSWORD = 'correct horse battery';
@@ -74,9 +76,25 @@ describe('authentication', () => {
   });
 
   it('never writes the password to disk', async () => {
-    const journal = readFileSync(join(h.dir, 'journal.log'), 'utf8');
-    assert.ok(!journal.includes(PASSWORD), 'password must not appear in the journal');
-    assert.ok(journal.includes('passwordHash'));
+    const db = new DatabaseSync(join(h.dir, DATABASE_FILE), { readOnly: true });
+    let rows: Array<Record<string, unknown>>;
+    try {
+      rows = db.prepare('SELECT doc FROM users').all();
+    } finally {
+      db.close();
+    }
+    assert.ok(rows.length > 0, 'accounts are persisted as rows, not held in memory');
+    for (const row of rows) {
+      const doc = String(row['doc']);
+      assert.ok(!doc.includes(PASSWORD), 'the password must not appear in the database');
+      assert.ok(doc.includes('passwordHash'), 'only the scrypt hash is stored');
+    }
+    // Not in the raw pages or the write-ahead log either.
+    for (const suffix of ['', '-wal']) {
+      const file = join(h.dir, `${DATABASE_FILE}${suffix}`);
+      if (!existsSync(file)) continue;
+      assert.ok(!readFileSync(file).toString('latin1').includes(PASSWORD), `password bytes found in ${file}`);
+    }
   });
 });
 

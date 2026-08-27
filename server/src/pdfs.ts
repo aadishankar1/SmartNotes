@@ -6,7 +6,7 @@
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { sha256Hex } from '../../shared/src/index.js';
-import { JournalStore } from './store/journal.js';
+import { SqliteStore } from './store/sqlite.js';
 import { TABLES, asRow, toRecord, type BlobRow, type NotebookRow } from './store/tables.js';
 import { ApiError, NotebookService, newId } from './notebooks.js';
 
@@ -17,7 +17,7 @@ const PDF_MAGIC = '%PDF-';
 
 export class PdfService {
   constructor(
-    private readonly store: JournalStore,
+    private readonly store: SqliteStore,
     private readonly notebooks: NotebookService,
     private readonly now: () => number,
   ) {}

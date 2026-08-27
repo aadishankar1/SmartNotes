@@ -8,7 +8,7 @@
 
 import { randomBytes, randomUUID, scryptSync, timingSafeEqual, createHash } from 'node:crypto';
 import { assertValid, SCHEMA_VERSION, userSchema, type User } from '../../shared/src/index.js';
-import { JournalStore } from './store/journal.js';
+import { SqliteStore } from './store/sqlite.js';
 import { TABLES, asRow, toRecord, type SessionRow, type UserRow } from './store/tables.js';
 
 export const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
@@ -66,7 +66,7 @@ export interface Session {
 
 export class AuthService {
   constructor(
-    private readonly store: JournalStore,
+    private readonly store: SqliteStore,
     private readonly now: () => number,
   ) {}
 
@@ -130,6 +130,6 @@ export class AuthService {
   }
 
   findByEmail(email: string): UserRow | undefined {
-    return asRow<UserRow>(this.store.first(TABLES.users, (row) => row['email'] === normalizeEmail(email)));
+    return asRow<UserRow>(this.store.firstBy(TABLES.users, 'email', normalizeEmail(email)));
   }
 }

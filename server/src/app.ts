@@ -26,7 +26,7 @@ import {
 import { AuthError, AuthService, publicUser } from './auth.js';
 import { ApiError, NotebookService, newId } from './notebooks.js';
 import { PdfService } from './pdfs.js';
-import { JournalStore } from './store/journal.js';
+import { SqliteStore } from './store/sqlite.js';
 import { type NotebookRow, type UserRow } from './store/tables.js';
 import {
   MethodNotAllowed,
@@ -42,14 +42,13 @@ export interface AppOptions {
   dataDir: string;
   now?: () => number;
   fsync?: boolean;
-  compactAfterBytes?: number;
   /** Bound on the per-notebook operation log; lower values force snapshots sooner. */
   logLimit?: number;
 }
 
 export interface App {
   handle(request: RequestInput): Promise<ApiResponse>;
-  store: JournalStore;
+  store: SqliteStore;
   auth: AuthService;
   notebooks: NotebookService;
   pdfs: PdfService;
@@ -95,11 +94,7 @@ function pick(body: Record<string, unknown>, allowed: readonly string[]): Record
 export function createApp(options: AppOptions): App {
   const now = options.now ?? (() => Date.now());
   const startedAt = now();
-  const store = JournalStore.open({
-    dir: options.dataDir,
-    fsync: options.fsync,
-    compactAfterBytes: options.compactAfterBytes,
-  });
+  const store = SqliteStore.open({ dir: options.dataDir, fsync: options.fsync });
   const auth = new AuthService(store, now);
   const notebooks = new NotebookService(store, now, options.logLimit);
   const pdfs = new PdfService(store, notebooks, now);
@@ -122,16 +117,18 @@ export function createApp(options: AppOptions): App {
     }
     const stats = store.stats();
     checks.push({ name: 'storage_readable', ok: true, detail: `${stats.records} records` });
+    checks.push({ name: 'storage_schema', ok: true, detail: `sqlite user_version ${stats.schemaVersion}` });
     checks.push({ name: 'schema_version', ok: true, detail: String(SCHEMA_VERSION) });
     const body: HealthResponse = {
       status: ok ? 'ok' : 'degraded',
       schemaVersion: SCHEMA_VERSION,
       uptimeMs: now() - startedAt,
       storage: {
+        engine: stats.engine,
         path: stats.path,
         durable: options.fsync !== false,
         records: stats.records,
-        journalBytes: stats.journalBytes,
+        byteSize: stats.byteSize,
       },
       checks,
     };

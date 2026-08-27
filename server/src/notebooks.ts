@@ -25,7 +25,7 @@ import {
   type SyncResponse,
   type SyncedKind,
 } from '../../shared/src/index.js';
-import { JournalStore, type Transaction } from './store/journal.js';
+import { SqliteStore, type Transaction } from './store/sqlite.js';
 import { TABLES, asRow, toRecord, type LogRow, type NotebookRow, type RevisionRow } from './store/tables.js';
 import type { UserRow } from './store/tables.js';
 
@@ -59,7 +59,7 @@ export interface ServerOpInput {
 
 export class NotebookService {
   constructor(
-    private readonly store: JournalStore,
+    private readonly store: SqliteStore,
     private readonly now: () => number,
     /** Operations retained per notebook before older ones fold into a checkpoint. */
     private readonly logLimit: number = DEFAULT_LOG_LIMIT,
@@ -93,7 +93,7 @@ export class NotebookService {
 
   /** Resolves the notebook that owns an entity, enforcing ownership. */
   locate(user: UserRow, kind: SyncedKind, id: string): { notebook: NotebookRow; record: Record<string, unknown> } {
-    for (const row of this.store.find(TABLES.notebooks, (r) => r['ownerId'] === user.id)) {
+    for (const row of this.store.findBy(TABLES.notebooks, 'ownerId', user.id)) {
       const notebook = row as unknown as NotebookRow;
       const record = this.entity(notebook.id, kind, id);
       if (record) return { notebook, record };
@@ -129,7 +129,7 @@ export class NotebookService {
   }
 
   listNotebooks(user: UserRow): Array<Record<string, unknown>> {
-    const rows = this.store.find(TABLES.notebooks, (r) => r['ownerId'] === user.id);
+    const rows = this.store.findBy(TABLES.notebooks, 'ownerId', user.id);
     const notebooks: Array<Record<string, unknown>> = [];
     for (const row of rows) {
       const record = this.entity(String(row['id']), 'notebook', String(row['id']));
@@ -242,7 +242,7 @@ export class NotebookService {
 
   revisions(noteId: string): RevisionRow[] {
     return this.store
-      .find(TABLES.revisions, (row) => row['noteId'] === noteId)
+      .findBy(TABLES.revisions, 'noteId', noteId)
       .map((row) => row as unknown as RevisionRow)
       .sort((a, b) => a.createdAt - b.createdAt || (a.id < b.id ? -1 : 1));
   }

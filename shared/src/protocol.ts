@@ -58,7 +58,16 @@ export interface HealthResponse {
   status: 'ok' | 'degraded';
   schemaVersion: number;
   uptimeMs: number;
-  storage: { path: string; durable: boolean; records: number; journalBytes: number };
+  storage: {
+    /** Persistence engine backing the server; "sqlite" for every build in this repo. */
+    engine: string;
+    path: string;
+    /** True when a commit is fsynced before it is acknowledged. */
+    durable: boolean;
+    records: number;
+    /** Size on disk of the database and its write-ahead log. */
+    byteSize: number;
+  };
   checks: Array<{ name: string; ok: boolean; detail?: string }>;
 }
 
