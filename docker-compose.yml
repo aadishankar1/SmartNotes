@@ -1,0 +1,34 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile
+      target: api
+    environment:
+      HOST: 0.0.0.0
+      PORT: 8787
+      SMARTNOTES_DATA_DIR: /data
+    ports:
+      - "8787:8787"
+    volumes:
+      - smartnotes-data:/data
+    healthcheck:
+      test: ["CMD", "node", "dist/server/src/healthcheck.js"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 5s
+
+  web:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile
+      target: web
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+
+volumes:
+  smartnotes-data:
