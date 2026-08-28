@@ -19,6 +19,8 @@ CMD ["node", "dist/server/src/main.js"]
 FROM nginx:1.27-alpine AS web
 COPY deploy/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/web/dist/web /usr/share/nginx/html
-# The compiled browser modules retain their shared-source relative imports.
-COPY --from=build /app/web/dist/shared /usr/share/nginx/shared
+# The compiled browser modules import '../../shared/src/*.js', which the
+# browser resolves to the root-clamped URL /shared/..., so the shared tree
+# must live inside the served docroot.
+COPY --from=build /app/web/dist/shared /usr/share/nginx/html/shared
 EXPOSE 8080
