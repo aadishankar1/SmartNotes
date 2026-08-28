@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc -b && mkdir -p ../dist/web && cp index.html ../dist/web/index.html && cp src/styles.css ../dist/web/src/styles.css",
-    "typecheck": "tsc -b"
+    "build": "rm -rf dist && tsc -p tsconfig.json && mkdir -p dist/web/src && cp index.html dist/web/index.html && cp src/styles.css dist/web/src/styles.css",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
   }
 }

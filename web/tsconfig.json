@@ -4,10 +4,9 @@
     "composite": true,
     "declaration": true,
     "rootDir": "..",
-    "outDir": "../dist",
-    "tsBuildInfoFile": "../dist/.tsbuildinfo-web",
+    "outDir": "./dist",
+    "tsBuildInfoFile": "./dist/.tsbuildinfo-web",
     "lib": ["ES2022", "DOM", "DOM.Iterable"]
   },
-  "include": ["src/**/*.ts"],
-  "references": [{ "path": "../shared" }]
+  "include": ["src/**/*.ts"]
 }

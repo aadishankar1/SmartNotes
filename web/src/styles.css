@@ -7,5 +7,5 @@ textarea { min-height: 16rem; resize: vertical; }.shell { max-width: 1100px; mar
 header { display:flex; justify-content:space-between; align-items:center; gap:1rem; } .grid { display:grid; grid-template-columns: 240px 1fr; gap: 1rem; margin-top: 1rem; }
 .panel, .card { background:white; border-radius:.7rem; padding:1rem; box-shadow:0 1px 3px #17203318; }.stack { display:grid; gap:.65rem; }.row { display:flex; gap:.5rem; align-items:center; flex-wrap:wrap; }
 .list button { text-align:left; width:100%; margin:.15rem 0; }.selected { outline: 2px solid #3659d9; }.muted { color:#667085; }.status { padding:.5rem .7rem; border-radius:.4rem; background:#eaf0ff; }.error { background:#ffe8e9; color:#8d2029; }.offline { background:#fff3d3; color:#765200; }.empty { padding:2rem; text-align:center; color:#667085; }
-.auth { max-width:420px; margin:10vh auto; }.pdf { width:100%; min-height:420px; border:1px solid #cbd2e1; }.annotation { border-left:4px solid #ffd60a; padding:.5rem; background:#fffaf0; }
+.auth { max-width:420px; margin:10vh auto; }.pdf { width:100%; min-height:420px; border:1px solid #cbd2e1; }.annotation { border-left:4px solid #ffd60a; padding:.5rem; background:#fffaf0; justify-content:space-between; }.note-row { gap:.25rem; }.note-row > button:first-child { flex:1; text-align:left; }
 @media (max-width: 700px) { .grid { grid-template-columns:1fr; } }

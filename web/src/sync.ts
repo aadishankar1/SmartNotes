@@ -13,8 +13,9 @@ export class SyncEngine {
   async save(): Promise<void> { await this.db.write(this.state); }
   async chooseNotebook(id: string): Promise<void> {
     const view = await this.api.viewNotebook(id);
+    const annotations = (await Promise.all(view.pdfs.map(async pdf => (await this.api.annotations(pdf.id)).annotations))).flat();
     this.state.activeNotebookId = id;
-    this.state.replica = { ...view, lamport: Math.max(this.state.replica?.lamport ?? 0, view.cursor) };
+    this.state.replica = { ...view, annotations, lamport: Math.max(this.state.replica?.lamport ?? 0, view.cursor) };
     await this.save();
   }
   async addNotebook(title: string): Promise<void> { const created = await this.api.createNotebook(title); await this.chooseNotebook(created.notebook.id); }
@@ -31,7 +32,8 @@ export class SyncEngine {
     this.conflicts = [...response.conflicts.map(c => `Another device changed ${c.field} on ${c.entityId}. Your local change remains available to retry.`), ...response.rejected.map(r => `A queued change was rejected: ${r.reason}`)];
     this.state.outbox = this.state.outbox.filter(op => rejected.has(op.opId));
     const view = await this.api.viewNotebook(replica.notebook.id);
-    this.state.replica = { ...view, lamport: Math.max(replica.lamport, response.cursor) };
+    const annotations = (await Promise.all(view.pdfs.map(async pdf => (await this.api.annotations(pdf.id)).annotations))).flat();
+    this.state.replica = { ...view, annotations, lamport: Math.max(replica.lamport, response.cursor) };
     await this.save();
   }
   private requireReplica(): Replica { if (!this.state.replica) throw new Error('Choose a notebook first.'); return this.state.replica; }
@@ -44,5 +46,12 @@ export class SyncEngine {
       const next = { ...existing, ...op.fields } as typeof existing; if (index >= 0) replica.notes[index] = next; else replica.notes.push(next);
     }
     if (op.entityKind === 'notebook' && op.entityId === replica.notebook.id && op.kind === 'set') replica.notebook = { ...replica.notebook, ...op.fields } as Replica['notebook'];
+    if (op.entityKind === 'annotation') {
+      const index = replica.annotations.findIndex(annotation => annotation.id === op.entityId);
+      if (op.kind === 'delete') { if (index >= 0) replica.annotations.splice(index, 1); return; }
+      const existing = index >= 0 ? replica.annotations[index]! : { schemaVersion: SCHEMA_VERSION, id: op.entityId, notebookId: op.notebookId, pdfId: '', page: 0, kind: 'note' as const, rect: null, color: '#ffd60a', text: null, strokeId: null, createdAt: op.at, updatedAt: op.at };
+      const next = { ...existing, ...op.fields } as typeof existing;
+      if (index >= 0) replica.annotations[index] = next; else replica.annotations.push(next);
+    }
   }
 }

@@ -12,6 +12,8 @@ export class Api {
   login(email: string, password: string) { return this.request<{ token:string; user:{email:string;displayName:string} }>('/v1/auth/login', 'POST', { email, password }); }
   notebooks() { return this.request<{ notebooks: Replica['notebook'][] }>('/v1/notebooks'); }
   createNotebook(title: string) { return this.request<{ notebook: Replica['notebook'] }>('/v1/notebooks', 'POST', { title }); }
+  updateNotebook(id: string, title: string) { return this.request<{ notebook: Replica['notebook'] }>(`/v1/notebooks/${encodeURIComponent(id)}`, 'PATCH', { title }); }
+  deleteNotebook(id: string) { return this.request<void>(`/v1/notebooks/${encodeURIComponent(id)}`, 'DELETE'); }
   viewNotebook(id: string) { return this.request<{ notebook: Replica['notebook']; notes: Replica['notes']; pdfs: Replica['pdfs']; cursor:number }>(`/v1/notebooks/${encodeURIComponent(id)}`); }
   createNote(notebookId: string, title: string) { return this.request<{ note: Replica['notes'][number] }>(`/v1/notebooks/${encodeURIComponent(notebookId)}/notes`, 'POST', { title, body: '', position: Date.now() }); }
   uploadPdf(notebookId: string, filename: string, content: string) { return this.request<{ pdf: Replica['pdfs'][number] }>('/v1/pdfs', 'POST', { notebookId, filename, content }); }
