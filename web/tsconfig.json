@@ -1,12 +1,10 @@
 {
   "extends": "../tsconfig.base.json",
   "compilerOptions": {
-    "composite": true,
-    "declaration": true,
     "rootDir": "..",
     "outDir": "./dist",
-    "tsBuildInfoFile": "./dist/.tsbuildinfo-web",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"]
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": []
   },
   "include": ["src/**/*.ts"]
 }

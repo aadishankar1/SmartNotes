@@ -27,10 +27,13 @@ export class SyncEngine {
   async sync(): Promise<void> {
     const replica = this.requireReplica();
     if (!navigator.onLine) throw new Error('You are offline. Changes are safely queued on this device.');
-    const response = await this.api.request<{ cursor:number; accepted:string[]; rejected:Array<{opId:string;reason:string}>; conflicts:Array<{field:string;entityId:string}> }>('/v1/sync', 'POST', { schemaVersion: SCHEMA_VERSION, deviceId: this.state.deviceId, notebookId: replica.notebook.id, cursor: replica.cursor, ops: this.state.outbox });
+    // Only ship ops for the active notebook: the server rejects cross-notebook
+    // ops, and dropping queued ops for another notebook would lose edits.
+    const ops = this.state.outbox.filter(op => op.notebookId === replica.notebook.id);
+    const response = await this.api.request<{ cursor:number; accepted:string[]; rejected:Array<{opId:string;reason:string}>; conflicts:Array<{field:string;entityId:string}> }>('/v1/sync', 'POST', { schemaVersion: SCHEMA_VERSION, deviceId: this.state.deviceId, notebookId: replica.notebook.id, cursor: replica.cursor, ops });
     const rejected = new Map(response.rejected.map(item => [item.opId, item.reason]));
     this.conflicts = [...response.conflicts.map(c => `Another device changed ${c.field} on ${c.entityId}. Your local change remains available to retry.`), ...response.rejected.map(r => `A queued change was rejected: ${r.reason}`)];
-    this.state.outbox = this.state.outbox.filter(op => rejected.has(op.opId));
+    this.state.outbox = this.state.outbox.filter(op => op.notebookId !== replica.notebook.id || rejected.has(op.opId));
     const view = await this.api.viewNotebook(replica.notebook.id);
     const annotations = (await Promise.all(view.pdfs.map(async pdf => (await this.api.annotations(pdf.id)).annotations))).flat();
     this.state.replica = { ...view, annotations, lamport: Math.max(replica.lamport, response.cursor) };

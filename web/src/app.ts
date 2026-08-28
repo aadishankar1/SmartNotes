@@ -7,7 +7,7 @@ const root = document.querySelector<HTMLElement>('#app')!;
 let db: LocalDatabase; let engine: SyncEngine; let selectedNote: Note | null = null; let selectedPdf: PdfDocument | null = null; let selectedPdfUrl: string | null = null; let notebooks: Notebook[] = []; let busy = false; let message = ''; let error = '';
 
 function state() { return engine.snapshot(); }
-function esc(value: unknown) { const el = document.createElement('span'); el.textContent = String(value ?? ''); return el.innerHTML; }
+function esc(value: unknown) { return String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]!)); }
 function setMessage(value = '') { message = value; error = ''; render(); }
 function setError(value: unknown) { error = value instanceof Error ? value.message : String(value); message = ''; render(); }
 async function act(action: () => Promise<void>) { if (busy) return; busy = true; render(); try { await action(); } catch (cause) { setError(cause); } finally { busy = false; render(); } }
