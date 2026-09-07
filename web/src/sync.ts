@@ -1,15 +1,49 @@
 import { SCHEMA_VERSION, createOperation, type Operation, type SyncedKind } from '../../shared/src/index.js';
 import { Api } from './api.js';
 import { LocalDatabase } from './db.js';
+import { faults } from './faults.js';
+import type { SaveStatus } from './status.js';
 import type { LocalState, Replica } from './types.js';
 
 export class SyncEngine {
   private state!: LocalState;
   private conflicts: string[] = [];
+  private status: SaveStatus = 'idle';
+  /** Why the last push failed; empty once a push succeeds. */
+  lastSaveError = '';
+  /** UI hook: called on every save-status transition, including 'saving'. */
+  onStatus: ((status: SaveStatus) => void) | null = null;
   constructor(private readonly db: LocalDatabase, private readonly api: Api) {}
   async load(): Promise<LocalState> { this.state = await this.db.read(); return this.state; }
   snapshot(): LocalState { return this.state; }
   conflictMessages(): readonly string[] { return this.conflicts; }
+  get saveStatus(): SaveStatus { return this.status; }
+  private setStatus(status: SaveStatus): void { this.status = status; this.onStatus?.(status); }
+  /** Queued (not yet server-acknowledged) ops for one entity. */
+  pendingOps(entityId: string): number { return this.state.outbox.filter(op => op.entityId === entityId).length; }
+  /**
+   * Queue a note edit and push it. 'saved' means the server acknowledged the
+   * sync; until then the status stays 'saving', and a failure keeps the draft
+   * op in the outbox and reports 'failed' instead of throwing.
+   */
+  async saveNote(id: string, fields: { title: string; body: string }): Promise<boolean> {
+    this.queue('note', id, { ...fields, updatedAt: Date.now() });
+    return this.push();
+  }
+  /** Push the outbox; resolves false (status 'failed') rather than throwing. */
+  async push(): Promise<boolean> {
+    this.setStatus('saving');
+    try {
+      await this.sync();
+      this.lastSaveError = '';
+      this.setStatus('saved');
+      return true;
+    } catch (cause) {
+      this.lastSaveError = cause instanceof Error ? cause.message : String(cause);
+      this.setStatus('failed');
+      return false;
+    }
+  }
   async save(): Promise<void> { await this.db.write(this.state); }
   async chooseNotebook(id: string): Promise<void> {
     const view = await this.api.viewNotebook(id);
@@ -27,6 +61,7 @@ export class SyncEngine {
   async sync(): Promise<void> {
     const replica = this.requireReplica();
     if (!navigator.onLine) throw new Error('You are offline. Changes are safely queued on this device.');
+    if (faults.failSaves) throw new Error('Could not save — the server rejected the request. Your draft is kept on this device.');
     // Only ship ops for the active notebook: the server rejects cross-notebook
     // ops, and dropping queued ops for another notebook would lose edits.
     const ops = this.state.outbox.filter(op => op.notebookId === replica.notebook.id);
