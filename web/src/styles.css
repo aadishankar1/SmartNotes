@@ -125,3 +125,7 @@ input::placeholder, textarea::placeholder { color: var(--muted); opacity: 1; }
   .layout:not(.show-editor) .editor-pane { display: none; }
   .back-btn { display: inline-flex; }
 }
+
+.notebook-loading { flex: 1; min-height: 240px; padding: 16px; color: var(--muted); }
+.notebook-loading .skeleton-row { margin: 12px 0; }
+.notebook-loading .skeleton-row:nth-child(even) { width: 75%; }

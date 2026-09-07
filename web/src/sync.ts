@@ -50,6 +50,13 @@ export class SyncEngine {
     const annotations = (await Promise.all(view.pdfs.map(async pdf => (await this.api.annotations(pdf.id)).annotations))).flat();
     this.state.activeNotebookId = id;
     this.state.replica = { ...view, annotations, lamport: Math.max(this.state.replica?.lamport ?? 0, view.cursor) };
+    // The server view cannot contain drafts still queued on this device.
+    // Restore only this notebook's pending edits before persisting the view.
+    for (const op of this.state.outbox) {
+      if (op.notebookId !== id) continue;
+      this.applyLocal(op);
+      this.state.replica.lamport = Math.max(this.state.replica.lamport, op.lamport);
+    }
     await this.save();
   }
   async addNotebook(title: string): Promise<void> { const created = await this.api.createNotebook(title); await this.chooseNotebook(created.notebook.id); }

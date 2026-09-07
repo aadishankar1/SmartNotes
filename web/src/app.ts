@@ -14,6 +14,7 @@ let selectedPdfUrl: string | null = null;
 let busy = false;
 let message = '';
 let error = '';
+let notebookLoad: { id: string; title: string; phase: 'loading' | 'error' } | null = null;
 /** Which note the editor fields currently in the DOM belong to. */
 let renderedNoteId: string | null = null;
 /** Note-list scroll offset, preserved across re-renders and portrait trips. */
@@ -24,6 +25,34 @@ function esc(value: unknown) { return String(value ?? '').replace(/[&<>"']/g, ch
 function setMessage(value = '') { message = value; error = ''; render(); }
 function setError(value: unknown) { error = value instanceof Error ? value.message : String(value); message = ''; render(); }
 async function act(action: () => Promise<void>) { if (busy) return; busy = true; render(); try { await action(); } catch (cause) { setError(cause); } finally { busy = false; render(); } }
+
+/** Keep the current replica and locally saved draft until the new read succeeds. */
+async function openNotebook(id: string): Promise<void> {
+  if (busy) return;
+  stashEditor();
+  busy = true;
+  error = '';
+  notebookLoad = { id, title: notebooks.find(book => book.id === id)?.title ?? 'notebook', phase: 'loading' };
+  render();
+  let draftStored = false;
+  try {
+    await engine.save();
+    draftStored = true;
+    await engine.chooseNotebook(id);
+    selectedNoteId = null; selectedPdfId = null; listScrollTop = 0;
+    notebookLoad = null;
+  } catch {
+    if (draftStored && notebookLoad) notebookLoad.phase = 'error';
+    else { notebookLoad = null; error = 'Could not store your draft on this device. Keep this page open and try saving again.'; }
+  } finally { busy = false; render(); }
+}
+
+function notebookLoadingTemplate(editor = false): string {
+  return `<div class="notebook-loading" role="status" aria-label="${editor ? 'Editor' : 'Note list'} loading"><p>Opening ${esc(notebookLoad?.title ?? 'notebook')}…</p><div aria-hidden="true">${'<div class="skeleton-row"></div>'.repeat(editor ? 4 : 6)}</div></div>`;
+}
+function notebookErrorTemplate(): string {
+  return `<div class="empty-state" role="alert"><h2>Could not open ${esc(notebookLoad!.title)}</h2><p>Your current notes and draft are still on this device. Check your connection, then try again.</p><button id="retry-notebook" class="primary">Retry opening notebook</button><button id="keep-notebook" class="secondary">Back to current notebook</button></div>`;
+}
 
 function currentNote(): Note | null { return state().replica?.notes.find(note => note.id === selectedNoteId) ?? null; }
 function currentPdf(): PdfDocument | null { return state().replica?.pdfs.find(pdf => pdf.id === selectedPdfId) ?? null; }
@@ -81,24 +110,24 @@ function render(): void {
   root.innerHTML = `<div class="shell">
   <header class="topbar"><h1>SmartNotes</h1><div class="row"><span class="muted">${esc(session.displayName)}</span><button class="ghost" id="logout">Log out</button></div></header>
   <p id="app-status" class="app-status ${error ? 'is-error' : offline ? 'is-offline' : ''}" role="status"><span>${esc(error || (busy ? 'Loading…' : offline ? `Offline — ${current.outbox.length} change(s) queued on this device.` : message || (current.outbox.length ? `${current.outbox.length} change(s) waiting to sync.` : 'All changes synced.')))}</span>${!offline ? '<button class="ghost" id="sync">Sync now</button>' : ''}</p>
-  <div class="layout ${selectedNoteId || selectedPdfId ? 'show-editor' : ''}">
+  <div class="layout ${!notebookLoad && (selectedNoteId || selectedPdfId) ? 'show-editor' : ''}">
     <aside class="list-pane">
       <div class="pane-head">
         <label class="visually-hidden" for="notebook-picker">Notebook</label>
-        <select id="notebook-picker" ${notebooks.length ? '' : 'disabled'}>${notebooks.length ? '' : '<option value="">No notebooks yet</option>'}${!replica ? '<option value="" selected disabled>Choose a notebook…</option>' : ''}${notebooks.map(notebook => `<option value="${esc(notebook.id)}" ${replica?.notebook.id === notebook.id ? 'selected' : ''}>${esc(notebook.title)}</option>`).join('')}</select>
-        <button id="new-note" class="primary">New note</button>
+        <select id="notebook-picker" ${!notebooks.length || busy ? 'disabled' : ''}>${notebooks.length ? '' : '<option value="">No notebooks yet</option>'}${!replica ? '<option value="" selected disabled>Choose a notebook…</option>' : ''}${notebooks.map(notebook => `<option value="${esc(notebook.id)}" ${(notebookLoad?.id ?? replica?.notebook.id) === notebook.id ? 'selected' : ''}>${esc(notebook.title)}</option>`).join('')}</select>
+        <button id="new-note" class="primary" ${notebookLoad ? 'disabled' : ''}>New note</button>
       </div>
       ${listTemplate(replica)}
-      <details class="tools"><summary>Notebook tools &amp; PDFs</summary><div class="stack">
+      ${notebookLoad ? '' : `<details class="tools"><summary>Notebook tools &amp; PDFs</summary><div class="stack">
         <form id="notebook-form" class="row"><input name="title" required placeholder="New notebook title" aria-label="New notebook title" /><button class="secondary">Create notebook</button></form>
         ${replica ? `<div class="row"><input id="notebook-title" value="${esc(replica.notebook.title)}" aria-label="Notebook title" /><button id="save-notebook" class="secondary">Rename</button></div>
         <div class="row"><button id="delete-notebook" class="ghost-danger">Delete notebook</button><label class="secondary file-btn"><input id="pdf-upload" type="file" accept="application/pdf" hidden />Import PDF</label></div>
         ${replica.pdfs.length ? `<div class="stack">${replica.pdfs.map(pdf => `<button class="pdf-open" data-pdf="${esc(pdf.id)}">PDF: ${esc(pdf.filename)}</button>`).join('')}</div>` : ''}` : ''}
-      </div></details>
+      </div></details>`}
     </aside>
-    <section class="editor-pane">${currentNote() ? editorTemplate(currentNote()!, draft) : currentPdf() ? pdfTemplate(currentPdf()!) : replica ? '<div class="empty-state"><p>Select a note to read or edit — or create a new one.</p></div>' : ''}</section>
+    <section class="editor-pane" aria-busy="${notebookLoad?.phase === 'loading'}">${notebookLoad?.phase === 'loading' ? notebookLoadingTemplate(true) : notebookLoad?.phase === 'error' ? '<div class="empty-state"><p>Your current draft is kept. Retry opening the notebook or return to your current notes.</p></div>' : currentNote() ? editorTemplate(currentNote()!, draft) : currentPdf() ? pdfTemplate(currentPdf()!) : replica ? '<div class="empty-state"><p>Select a note to read or edit — or create a new one.</p></div>' : ''}</section>
   </div></div>`;
-  renderedNoteId = currentNote()?.id ?? null;
+  renderedNoteId = notebookLoad ? null : currentNote()?.id ?? null;
   bindApp();
   const newList = document.querySelector<HTMLElement>('.note-list');
   if (newList) newList.scrollTop = listScrollTop;
@@ -114,6 +143,8 @@ function render(): void {
 }
 
 function listTemplate(replica: ReturnType<typeof state>['replica']): string {
+  if (notebookLoad?.phase === 'loading') return notebookLoadingTemplate();
+  if (notebookLoad?.phase === 'error') return notebookErrorTemplate();
   if (busy && !replica) return `<div class="note-list" aria-hidden="true">${'<div class="skeleton-row"></div>'.repeat(6)}</div>`;
   if (!replica) {
     return notebooks.length
@@ -189,9 +220,11 @@ async function saveSelectedNote(): Promise<void> {
 function bindAuth() { document.querySelector<HTMLFormElement>('#auth')!.addEventListener('submit', event => { event.preventDefault(); const submitter = (event as SubmitEvent).submitter as HTMLButtonElement; const form = new FormData(event.currentTarget as HTMLFormElement); act(async () => { const email = String(form.get('email')); const password = String(form.get('password')); const api = new Api(() => null); const response = submitter.value === 'signup' ? await api.signup(email, password, String(form.get('name'))) : await api.login(email, password); state().session = { token: response.token, email: response.user.email, displayName: response.user.displayName }; await engine.save(); notebooks = (await new Api(() => state().session).notebooks()).notebooks; setMessage('Welcome to SmartNotes.'); }); }); }
 
 function bindApp() {
-  document.querySelector('#logout')?.addEventListener('click', () => act(async () => { state().session = null; state().replica = null; state().outbox = []; selectedNoteId = null; selectedPdfId = null; notebooks = []; await engine.save(); }));
+  document.querySelector('#retry-notebook')?.addEventListener('click', () => { if (notebookLoad) void openNotebook(notebookLoad.id); });
+  document.querySelector('#keep-notebook')?.addEventListener('click', () => { notebookLoad = null; render(); });
+  document.querySelector('#logout')?.addEventListener('click', () => act(async () => { state().session = null; state().replica = null; state().outbox = []; notebookLoad = null; selectedNoteId = null; selectedPdfId = null; notebooks = []; await engine.save(); }));
   document.querySelector('#sync')?.addEventListener('click', () => act(async () => { if (!state().replica) return; const ok = await engine.push(); notebooks = (await new Api(() => state().session).notebooks()).notebooks; if (!ok) throw new Error(engine.lastSaveError); setMessage(engine.conflictMessages().join(' ') || 'All changes synchronized.'); }));
-  document.querySelector<HTMLSelectElement>('#notebook-picker')?.addEventListener('change', event => { const id = (event.currentTarget as HTMLSelectElement).value; if (!id) return; stashEditor(); act(async () => { await engine.chooseNotebook(id); selectedNoteId = null; selectedPdfId = null; }); });
+  document.querySelector<HTMLSelectElement>('#notebook-picker')?.addEventListener('change', event => { const id = (event.currentTarget as HTMLSelectElement).value; if (!id) return; void openNotebook(id); });
   document.querySelector<HTMLFormElement>('#notebook-form')?.addEventListener('submit', event => { event.preventDefault(); const title = String(new FormData(event.currentTarget as HTMLFormElement).get('title')); act(async () => { await engine.addNotebook(title); notebooks = (await new Api(() => state().session).notebooks()).notebooks; selectedNoteId = null; selectedPdfId = null; setMessage('Notebook created.'); }); });
   document.querySelector('#save-notebook')?.addEventListener('click', () => act(async () => { const replica = state().replica!; const title = document.querySelector<HTMLInputElement>('#notebook-title')!.value.trim(); if (!title) throw new Error('A notebook needs a title.'); if (!navigator.onLine) { engine.queue('notebook', replica.notebook.id, { title, updatedAt: Date.now() }); await engine.save(); setMessage('Notebook rename saved locally.'); return; } const updated = await new Api(() => state().session).updateNotebook(replica.notebook.id, title); replica.notebook = updated.notebook; await engine.save(); notebooks = (await new Api(() => state().session).notebooks()).notebooks; setMessage('Notebook renamed.'); }));
   document.querySelector('#delete-notebook')?.addEventListener('click', () => act(async () => { const replica = state().replica!; if (!navigator.onLine) throw new Error('Notebook deletion needs a connection.'); await new Api(() => state().session).deleteNotebook(replica.notebook.id); notebooks = (await new Api(() => state().session).notebooks()).notebooks; state().replica = null; state().activeNotebookId = null; selectedNoteId = null; selectedPdfId = null; await engine.save(); setMessage('Notebook deleted.'); }));
