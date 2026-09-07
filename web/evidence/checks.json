@@ -1,0 +1,200 @@
+{
+  "recordedAt": "2026-09-07T19:40:55.657Z",
+  "commit": "a1cca5f2234b8ee41e67510d775e4bfcca210a41",
+  "node": "v22.23.2",
+  "chromium": "147.0.7727.15",
+  "origin": "http://localhost (Playwright route-intercepted; /v1/* proxied to in-process server harness)",
+  "passed": 29,
+  "total": 29,
+  "results": [
+    {
+      "name": "note list empty state invites first note",
+      "ok": true,
+      "detail": "✎Create your first noteStart with a lecture, reading, or idea you want to remember.＋ New n"
+    },
+    {
+      "name": "no horizontal scroll (empty list 1440x900)",
+      "ok": true,
+      "detail": "documentElement.scrollWidth=1440 body.scrollWidth=1440 innerWidth=1440"
+    },
+    {
+      "name": "new note opens with title focused",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "new note announces not-yet-saved",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "editing shows dirty (Unsaved changes)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "saving state has spinner + Saving…",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "saved means server-acknowledged (✓ Saved to server)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "flow1: reopened note text intact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "list renders all 201 notes",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "200-note list scrolls without stutter",
+      "ok": true,
+      "detail": "20 programmatic scroll hops in 345ms, frame avg 17ms max 17ms"
+    },
+    {
+      "name": "120-char title ellipsized, row height unchanged",
+      "ok": true,
+      "detail": "{\"long\":58,\"short\":58,\"clipped\":true,\"overflow\":\"ellipsis\"}"
+    },
+    {
+      "name": "no horizontal scroll (200-note list 1440x900)",
+      "ok": true,
+      "detail": "documentElement.scrollWidth=1440 body.scrollWidth=1440 innerWidth=1440"
+    },
+    {
+      "name": "flow2: 10 keystrokes keep focus and caret",
+      "ok": true,
+      "detail": "{\"active\":\"note-body\",\"len\":33,\"selStart\":33}"
+    },
+    {
+      "name": "list loading state shows spinner + text",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "list error state explains and offers Retry",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Retry recovers from list error",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "failSaves: status walks dirty → saving → failed",
+      "ok": true,
+      "detail": "[\"dirty\",\"saving\",\"failed\"]"
+    },
+    {
+      "name": "failed state keeps the draft in the editor",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "draft survives reload after failed save",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "flow3: retry reaches server acknowledgement",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "light tokens active (#202624 on #F6F5F1)",
+      "ok": true,
+      "detail": "{\"color\":\"rgb(32, 38, 36)\",\"bg\":\"rgb(246, 245, 241)\"}"
+    },
+    {
+      "name": "dark tokens active (#F0F3EF on #151B18)",
+      "ok": true,
+      "detail": "{\"color\":\"rgb(240, 243, 239)\",\"bg\":\"rgb(21, 27, 24)\"}"
+    },
+    {
+      "name": "no horizontal scroll (editor 1440x900)",
+      "ok": true,
+      "detail": "documentElement.scrollWidth=1440 body.scrollWidth=1440 innerWidth=1440"
+    },
+    {
+      "name": "no horizontal scroll (list 768x1024)",
+      "ok": true,
+      "detail": "documentElement.scrollWidth=768 body.scrollWidth=768 innerWidth=768"
+    },
+    {
+      "name": "portrait shows single-pane note list",
+      "ok": true,
+      "detail": "{\"notebooksHidden\":true,\"editorHidden\":true}"
+    },
+    {
+      "name": "portrait editor has persistent back action",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "no horizontal scroll (editor 768x1024)",
+      "ok": true,
+      "detail": "documentElement.scrollWidth=768 body.scrollWidth=768 innerWidth=768"
+    },
+    {
+      "name": "back returns to list, focuses Notes heading",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "no horizontal scroll (list after back 768x1024)",
+      "ok": true,
+      "detail": "documentElement.scrollWidth=768 body.scrollWidth=768 innerWidth=768"
+    }
+  ],
+  "screenshots": {
+    "note-editor-768.png": {
+      "width": 768,
+      "height": 1024,
+      "bytes": 40602,
+      "sha256": "670541a680512e0ce4b8f0287e41cd814fc61fb80b57eed3d1f430c84b458f75",
+      "describes": "768x1024 light — portrait editor with ← Notes back action and save status"
+    },
+    "note-editor-dark.png": {
+      "width": 1440,
+      "height": 900,
+      "bytes": 104985,
+      "sha256": "71e2bf78164ea7cf4f966e0caa514aadac3b4cd4fd98427c0f6ac01b66a34595",
+      "describes": "1440x900 dark (prefers-color-scheme: dark) — editor with dark theme tokens"
+    },
+    "note-editor-failed.png": {
+      "width": 1440,
+      "height": 900,
+      "bytes": 104488,
+      "sha256": "34c925778a2c5143570d2f3f83a4b45f7b1099c986b56ea1ed87b042f9ff6bd1",
+      "describes": "1440x900 light — failed-to-save status under ?failSaves=1, draft still in the editor"
+    },
+    "note-editor.png": {
+      "width": 1440,
+      "height": 900,
+      "bytes": 100176,
+      "sha256": "06331e0f2dec2470612238551ffb970003965972ac44fad2987f00fd2dd1bf95",
+      "describes": "1440x900 light — editor with ✓ Saved to server status after editing the long-titled note"
+    },
+    "note-list-768.png": {
+      "width": 768,
+      "height": 1024,
+      "bytes": 69191,
+      "sha256": "fc9401551448c814a0ec2d0066b3bad7f84b68c7f5d6f09c6c3538d8ec0ab827",
+      "describes": "768x1024 light — single-pane note list with the 200 seeded notes"
+    },
+    "note-list.png": {
+      "width": 1440,
+      "height": 900,
+      "bytes": 79754,
+      "sha256": "103446fe03f7258aaaf7a4489cfa3f38f0c51c01567b6a84c02c2b23b3737ee3",
+      "describes": "1440x900 light — 200-note list, 120-char title ellipsized mid-list"
+    }
+  }
+}
