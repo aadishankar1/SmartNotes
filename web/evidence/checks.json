@@ -1,11 +1,11 @@
 {
-  "recordedAt": "2026-09-07T19:40:55.657Z",
-  "commit": "a1cca5f2234b8ee41e67510d775e4bfcca210a41",
+  "recordedAt": "2026-09-07T19:43:36.920Z",
+  "commit": "3bc813e4c3d64688056146e96c9fe499924173f3",
   "node": "v22.23.2",
   "chromium": "147.0.7727.15",
   "origin": "http://localhost (Playwright route-intercepted; /v1/* proxied to in-process server harness)",
-  "passed": 29,
-  "total": 29,
+  "passed": 30,
+  "total": 30,
   "results": [
     {
       "name": "note list empty state invites first note",
@@ -53,9 +53,14 @@
       "detail": ""
     },
     {
+      "name": "editor empty state names next step (Select a note)",
+      "ok": true,
+      "detail": ""
+    },
+    {
       "name": "200-note list scrolls without stutter",
       "ok": true,
-      "detail": "20 programmatic scroll hops in 345ms, frame avg 17ms max 17ms"
+      "detail": "20 programmatic scroll hops in 346ms, frame avg 17ms max 17ms"
     },
     {
       "name": "120-char title ellipsized, row height unchanged",

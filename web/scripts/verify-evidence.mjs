@@ -135,6 +135,7 @@ for (let i = 0; i < 200; i += 1) {
 await page.click(`[data-notebook="${nbId}"]`);
 await page.waitForFunction(() => document.querySelectorAll('[data-note]').length > 200);
 check('list renders all 201 notes', (await page.locator('.note-row').count()) === 201);
+check('editor empty state names next step (Select a note)', ((await page.locator('.editor-pane .blank').textContent()) ?? '').includes('Select a note'));
 const scrollProbe = await page.locator('.note-list').evaluate(async (el) => {
   const frames = [];
   let last = performance.now();
