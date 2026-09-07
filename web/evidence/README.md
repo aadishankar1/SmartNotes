@@ -1,10 +1,11 @@
 # SmartNotes web — recorded evidence
 
 Real-browser checks of the note list and editor, recorded on 2026-09-07 (UTC
-2026-09-07T19:43:36Z) at commit `3bc813e4c3d64688056146e96c9fe499924173f3`, whose
-`web/src` and `web/index.html` are identical to app-source commit
-`a1cca5f2234b8ee41e67510d775e4bfcca210a41`, with Node v22.23.2 and headless
-Chromium 147.0.7727.15 (Playwright 1.59). The
+2026-09-07T20:03:44Z) at integration-branch commit
+`4e23158a5c4a1a80bc0dba3b74e1f96ddf246260` (the final-review rename fix), with
+Node v22.23.2 and headless Chromium 147.0.7727.15 (Playwright 1.59). The
+screenshots are byte-identical to the previous recording at
+`3bc813e4c3d64688056146e96c9fe499924173f3`. The
 built client (`web/dist`) was served at a real `http://localhost` origin via
 Playwright route interception, with every `/v1/*` request proxied into the
 compiled in-process server harness (`dist/server/test/helpers.js`), so fetch,

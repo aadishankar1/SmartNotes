@@ -1,6 +1,6 @@
 {
-  "recordedAt": "2026-09-07T19:43:36.920Z",
-  "commit": "3bc813e4c3d64688056146e96c9fe499924173f3",
+  "recordedAt": "2026-09-07T20:03:44.135Z",
+  "commit": "4e23158a5c4a1a80bc0dba3b74e1f96ddf246260",
   "node": "v22.23.2",
   "chromium": "147.0.7727.15",
   "origin": "http://localhost (Playwright route-intercepted; /v1/* proxied to in-process server harness)",
@@ -60,7 +60,7 @@
     {
       "name": "200-note list scrolls without stutter",
       "ok": true,
-      "detail": "20 programmatic scroll hops in 346ms, frame avg 17ms max 17ms"
+      "detail": "20 programmatic scroll hops in 344ms, frame avg 17ms max 17ms"
     },
     {
       "name": "120-char title ellipsized, row height unchanged",
