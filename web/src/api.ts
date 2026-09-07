@@ -1,9 +1,15 @@
 import type { AnnotationView, Replica, Session } from './types.js';
 
 export class ApiError extends Error { constructor(readonly status: number, message: string) { super(message); } }
+// Test fault: `?failSaves=1` on the page URL deterministically rejects the
+// save/sync POST before it reaches the network, so a tester can observe the
+// failed-save path; auth, reads and every other request stay untouched.
+const SYNC_PATH = '/v1/sync';
+function saveFaultArmed(): boolean { const search = typeof location === 'object' && location !== null ? location.search : ''; return new URLSearchParams(search).get('failSaves') === '1'; }
 export class Api {
   constructor(private readonly session: () => Session | null) {}
   async request<T>(path: string, method = 'GET', body?: unknown): Promise<T> {
+    if (method === 'POST' && path === SYNC_PATH && saveFaultArmed()) throw new ApiError(503, 'The server could not save this note (?failSaves=1 test fault). Your draft is kept on this device — remove the flag and retry.');
     const session = this.session(); const response = await fetch(path, { method, headers: { ...(body === undefined ? {} : { 'content-type': 'application/json' }), ...(session ? { authorization: `Bearer ${session.token}` } : {}) }, body: body === undefined ? undefined : JSON.stringify(body) });
     if (!response.ok) { const data = await response.json().catch(() => null) as { error?: { message?: string } } | null; throw new ApiError(response.status, data?.error?.message ?? `Request failed (${response.status})`); }
     return response.status === 204 ? undefined as T : response.json() as Promise<T>;
