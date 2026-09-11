@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "185ae9a32ded2f1bba36cd51765024bd",
+  "entityKind": "note",
+  "entityId": "note_kickoff",
+  "field": "title",
+  "winner": {
+    "opId": "0c8f6e8846518bc40723dee7c1be80fe",
+    "stamp": {
+      "lamport": 2,
+      "actor": "dev_mac",
+      "seq": 0
+    },
+    "value": "Kickoff (lab)"
+  },
+  "losers": [
+    {
+      "opId": "f052acfbef2aded0ae6642e6c0ffae4c",
+      "stamp": {
+        "lamport": 2,
+        "actor": "dev_ipad",
+        "seq": 1
+      },
+      "value": "Kickoff (field)"
+    }
+  ],
+  "detectedAt": 1767225602000
+}

@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "entityKind": "note",
+  "entityId": "note_scratch",
+  "notebookId": "nb_field",
+  "stamp": {
+    "lamport": 9,
+    "actor": "dev_ipad",
+    "seq": 4
+  },
+  "deletedAt": 1767225900000
+}

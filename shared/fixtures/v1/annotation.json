@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "anno_week3",
+  "pdfId": "pdf_syllabus",
+  "notebookId": "nb_field",
+  "page": 2,
+  "kind": "highlight",
+  "rect": {
+    "x": 72,
+    "y": 320.5,
+    "width": 180,
+    "height": 14
+  },
+  "color": "#ffd60a",
+  "text": "lab report due",
+  "strokeId": "ink_week3",
+  "createdAt": 1767226100000,
+  "updatedAt": 1767226100000
+}
