@@ -163,6 +163,9 @@ test('web client: offline replica, outbox replay and once-only cross-client sync
     assert.deepEqual(a.engine.conflictMessages(), [], 'held ops do not surface as spurious rejections');
 
     await a.engine.chooseNotebook(notebookId);
+    assert.equal(a.engine.snapshot().replica!.notes.find(n => n.id === noteId)?.body, 'queued offline', 'returning to a notebook shows its unsynced draft before pushing');
+    a = await client(originA, null);
+    assert.equal(a.engine.snapshot().replica!.notes.find(n => n.id === noteId)?.body, 'queued offline', 'returned draft survives another reload');
     await a.engine.sync();
     assert.equal(a.engine.snapshot().outbox.length, 0, 'queued op lands once its notebook is synced');
     assert.ok(a.engine.snapshot().replica!.notes.some((n) => n.id === noteId));

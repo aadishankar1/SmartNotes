@@ -1,0 +1,16 @@
+{
+  "at": "2026-09-11T03:33:53.599Z",
+  "checks": [
+    "Account and notebook creation reach the empty note state",
+    "Save and reload preserve the title and body",
+    "Rename uses the typed title before the busy render",
+    "Failed notebook read leaves the current draft recoverable",
+    "Queued draft survives switching away and back",
+    "Failed save keeps the draft through reload",
+    "Retry clears the failure only after server acknowledgement",
+    "A separate device reads the recovered content from the server",
+    "Editor and note navigation fit 768x1024",
+    "Editor and note navigation fit 390x844",
+    "No browser runtime errors"
+  ]
+}

@@ -50,8 +50,9 @@ export function installIndexedDB(origin: FakeOrigin): void {
           if (!backing.has(store)) backing.set(store, new Map());
         },
         transaction(store: string, _mode: string) {
-          return {
+          const tx = {
             onerror: null as (() => void) | null,
+            oncomplete: null as (() => void) | null,
             error: null as Error | null,
             objectStore() {
               const data = backing.get(store);
@@ -60,17 +61,20 @@ export function installIndexedDB(origin: FakeOrigin): void {
                 get(key: string): FakeIDBRequest {
                   const request: FakeIDBRequest = { result: undefined, error: null, onsuccess: null, onerror: null };
                   settle(request, data.has(key) ? structuredClone(data.get(key)) : undefined);
+                  queueMicrotask(() => tx.oncomplete?.());
                   return request;
                 },
                 put(value: unknown, key: string): FakeIDBRequest {
                   const request: FakeIDBRequest = { result: undefined, error: null, onsuccess: null, onerror: null };
                   data.set(key, structuredClone(value));
                   settle(request, key);
+                  queueMicrotask(() => tx.oncomplete?.());
                   return request;
                 },
               };
             },
           };
+          return tx;
         },
       };
       const request: FakeIDBRequest = { result: undefined, error: null, onsuccess: null, onerror: null, onupgradeneeded: null };

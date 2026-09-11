@@ -1,3 +1,9 @@
+# Current baseline verification
+
+The restored baseline combines the completed application with the later notebook loading and draft recovery fixes. See [restored-baseline/checks.json](restored-baseline/checks.json) for the latest 11 browser checks and screenshots. Reproduce against an isolated local web/API preview with `BASE_URL=http://127.0.0.1:PORT/web/index.html node web/scripts/verify-restored-baseline.mjs` (set `PLAYWRIGHT_DIR` if Playwright is installed elsewhere). The checks create a synthetic local account and verify saves, reloads, notebook read failure recovery, failed save recovery on another device, and tablet/phone navigation.
+
+The following evidence and its original script describe the earlier integration revision, retained as history; the old selectors apply to that revision.
+
 # SmartNotes web — recorded evidence
 
 Real-browser checks of the note list and editor, recorded on 2026-09-07 (UTC

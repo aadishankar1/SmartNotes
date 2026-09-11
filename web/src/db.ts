@@ -21,6 +21,15 @@ export class LocalDatabase {
   private async get<T>(key: string): Promise<T | undefined> { return this.run('readonly', store => store.get(key)); }
   private async put(key: string, value: unknown): Promise<void> { await this.run('readwrite', store => store.put(value, key)); }
   private run<T>(mode: IDBTransactionMode, operation: (store: IDBObjectStore) => IDBRequest<T>): Promise<T | undefined> {
-    return new Promise((resolve, reject) => { const tx = this.db.transaction(STORE, mode); const request = operation(tx.objectStore(STORE)); request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error); tx.onerror = () => reject(tx.error); });
+    return new Promise((resolve, reject) => {
+      const tx = this.db.transaction(STORE, mode);
+      const request = operation(tx.objectStore(STORE));
+      // A successful put can still roll back on reload before the transaction
+      // commits. Acknowledge local storage only after that commit.
+      tx.oncomplete = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+      tx.onerror = () => reject(tx.error);
+      tx.onabort = () => reject(tx.error ?? new Error('Local note storage was interrupted.'));
+    });
   }
 }
